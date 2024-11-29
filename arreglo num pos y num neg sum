@@ -1,0 +1,14 @@
+int[] numeros = {-3, 5, -1, 9, -7, 4};
+int contadorPositivos = 0; 
+int sumaNegativos = 0;      
+
+for (int numero : numeros) {
+    if (numero > 0) {
+        contadorPositivos++;  
+    } else {
+        sumaNegativos += numero;  
+    }
+}
+
+System.out.println("Cantidad de números positivos: " + contadorPositivos);
+System.out.println("Suma de números negativos: " + sumaNegativos);

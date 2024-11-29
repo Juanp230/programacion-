@@ -1,0 +1,19 @@
+import java.util.HashSet;
+
+public class EjemploHashSet {
+    public static void main(String[] args) {
+        HashSet<String> villanos = new HashSet<>();
+        villanos.add("Loki");
+        villanos.add("Thanos");
+        villanos.add("Red Skull");
+        villanos.add("Thanos"); 
+
+        
+        for (String villano : villanos) {
+            System.out.println("Villano: " + villano);
+        }
+
+       
+        System.out.println("¿Existe Thanos? " + villanos.contains("Thanos"));
+    }
+}

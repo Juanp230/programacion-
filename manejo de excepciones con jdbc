@@ -1,0 +1,100 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.ResultSet;
+import java.util.Scanner;
+
+public class ManejoExcepcionesJDBC {
+    private static final String URL = "jdbc:mysql://localhost:3306/gestion_errores";
+    private static final String USER = "tu_usuario";
+    private static final String PASSWORD = "tu_contraseña";
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Elige una opción:");
+            System.out.println("1. Añadir producto");
+            System.out.println("2. Mostrar productos");
+            System.out.println("3. Salir");
+            int opcion = scanner.nextInt();
+            scanner.nextLine();  
+
+            try (Connection connection = getConnection()) {
+                switch (opcion) {
+                    case 1:
+                        
+                        System.out.print("Ingresa el nombre del producto: ");
+                        String nombre = scanner.nextLine();
+                        System.out.print("Ingresa el precio del producto: ");
+                        double precio = scanner.nextDouble();
+                        scanner.nextLine(); 
+                        añadirProducto(connection, nombre, precio);
+                        break;
+                    case 2:
+                       
+                        mostrarProductos(connection);
+                        break;
+                    case 3:
+                      
+                        System.out.println("¡Adiós!");
+                        scanner.close();
+                        return;
+                    default:
+                        System.out.println("Opción no válida. Intenta de nuevo.");
+                }
+            } catch (SQLException e) {
+                manejarSQLException(e);
+            }
+        }
+    }
+
+    private static Connection getConnection() throws SQLException {
+        try {
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (SQLException e) {
+            System.out.println("Error al conectar con la base de datos.");
+            throw e;
+        }
+    }
+
+    private static void añadirProducto(Connection connection, String nombre, double precio) {
+        String sql = "INSERT INTO productos (nombre, precio) VALUES (?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, nombre);
+            statement.setDouble(2, precio);
+            statement.executeUpdate();
+            System.out.println("Producto añadido.");
+        } catch (SQLException e) {
+            manejarSQLException(e);
+        }
+    }
+
+    private static void mostrarProductos(Connection connection) {
+        String sql = "SELECT * FROM productos";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String nombre = resultSet.getString("nombre");
+                double precio = resultSet.getDouble("precio");
+                System.out.println("ID: " + id + ", Nombre: " + nombre + ", Precio: " + precio);
+            }
+        } catch (SQLException e) {
+            manejarSQLException(e);
+        }
+    }
+
+    private static void manejarSQLException(SQLException e) {
+        System.err.println("SQL State: " + e.getSQLState());
+        System.err.println("Error Code: " + e.getErrorCode());
+        System.err.println("Message: " + e.getMessage());
+        
+        Throwable t = e.getCause();
+        while (t != null) {
+            System.out.println("Cause: " + t);
+            t = t.getCause();
+        }
+    }
+}

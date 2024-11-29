@@ -1,0 +1,15 @@
+int[] calificaciones = {70, 85, 55, 90, 40, 75};
+int contadorAprobados = 0;   
+int sumaCalificaciones = 0;  
+
+for (int calificacion : calificaciones) {
+    sumaCalificaciones += calificacion;  
+    if (calificacion >= 60) {
+        contadorAprobados++;  
+    }
+}
+
+double promedio = (double) sumaCalificaciones / calificaciones.length;
+
+System.out.println("Cantidad de estudiantes aprobados: " + contadorAprobados);
+System.out.println("Promedio de calificaciones: " + promedio);

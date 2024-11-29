@@ -1,0 +1,34 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class GestionDeListas {
+    public static void main(String[] args) {
+        List<String> listaElementos = new ArrayList<>();
+        Scanner scanner = new Scanner(System.in);
+
+       
+        listaElementos.add("Elemento1");
+        listaElementos.add("Elemento2");
+        listaElementos.add("Elemento3");
+        listaElementos.add("Elemento4");
+
+        System.out.println("Lista de elementos: " + listaElementos);
+
+        try {
+            
+            System.out.print("Ingresa el índice del elemento que deseas ver: ");
+            int indice = scanner.nextInt();
+
+         
+            String elemento = listaElementos.get(indice);
+            System.out.println("Elemento en el índice " + indice + ": " + elemento);
+        } catch (IndexOutOfBoundsException e) {
+          
+            System.out.println("Error: Índice fuera de los límites de la lista.");
+        } finally {
+            
+            scanner.close();
+        }
+    }
+}

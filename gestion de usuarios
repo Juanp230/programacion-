@@ -1,0 +1,178 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
+
+
+class FondosInsuficientesException extends Exception {
+    public FondosInsuficientesException(String mensaje) {
+        super(mensaje);
+    }
+}
+
+class CuentaBancaria {
+    private double saldo;
+
+    public CuentaBancaria(double saldoInicial) {
+        this.saldo = saldoInicial;
+    }
+
+    public double getSaldo() {
+        return saldo;
+    }
+
+    public void retirar(double cantidad) throws FondosInsuficientesException {
+        if (cantidad > saldo) {
+            throw new FondosInsuficientesException("Fondos insuficientes para realizar el retiro.");
+        }
+        saldo -= cantidad;
+    }
+}
+
+
+public class GestionUsuarios {
+    private static final String URL = "jdbc:mysql://localhost:3306/gestion_usuarios";
+    private static final String USER = "tu_usuario";
+    private static final String PASSWORD = "tu_contraseña";
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Elige una opción:");
+            System.out.println("1. Añadir usuario");
+            System.out.println("2. Eliminar usuario");
+            System.out.println("3. Actualizar usuario");
+            System.out.println("4. Mostrar todos los usuarios");
+            System.out.println("5. Gestión de Cuenta Bancaria");
+            System.out.println("6. Salir");
+            int opcion = scanner.nextInt();
+            scanner.nextLine();  
+
+            try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+                switch (opcion) {
+                    case 1:
+                        
+                        System.out.print("Ingresa el nombre: ");
+                        String nombre = scanner.nextLine();
+                        System.out.print("Ingresa el email: ");
+                        String email = scanner.nextLine();
+                        añadirUsuario(connection, nombre, email);
+                        break;
+                    case 2:
+                        
+                        System.out.print("Ingresa el ID del usuario a eliminar: ");
+                        int idEliminar = scanner.nextInt();
+                        eliminarUsuario(connection, idEliminar);
+                        break;
+                    case 3:
+                       
+                        System.out.print("Ingresa el ID del usuario a actualizar: ");
+                        int idActualizar = scanner.nextInt();
+                        scanner.nextLine();  
+                        System.out.print("Ingresa el nuevo nombre: ");
+                        String nuevoNombre = scanner.nextLine();
+                        System.out.print("Ingresa el nuevo email: ");
+                        String nuevoEmail = scanner.nextLine();
+                        actualizarUsuario(connection, idActualizar, nuevoNombre, nuevoEmail);
+                        break;
+                    case 4:
+                      
+                        mostrarUsuarios(connection);
+                        break;
+                    case 5:
+                      
+                        System.out.print("Ingresa el saldo inicial de la cuenta: ");
+                        double saldoInicial = scanner.nextDouble();
+                        CuentaBancaria cuentaBancaria = new CuentaBancaria(saldoInicial);
+                        gestionarCuentaBancaria(scanner, cuentaBancaria);
+                        break;
+                    case 6:
+                        
+                        System.out.println("¡Adiós!");
+                        scanner.close();
+                        return;
+                    default:
+                        System.out.println("Opción no válida. Intenta de nuevo.");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void añadirUsuario(Connection connection, String nombre, String email) throws SQLException {
+        String sql = "INSERT INTO usuarios (nombre, email) VALUES (?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, nombre);
+            statement.setString(2, email);
+            statement.executeUpdate();
+            System.out.println("Usuario añadido.");
+        }
+    }
+
+    private static void eliminarUsuario(Connection connection, int id) throws SQLException {
+        String sql = "DELETE FROM usuarios WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            statement.executeUpdate();
+            System.out.println("Usuario eliminado.");
+        }
+    }
+
+    private static void actualizarUsuario(Connection connection, int id, String nombre, String email) throws SQLException {
+        String sql = "UPDATE usuarios SET nombre = ?, email = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, nombre);
+            statement.setString(2, email);
+            statement.setInt(3, id);
+            statement.executeUpdate();
+            System.out.println("Usuario actualizado.");
+        }
+    }
+
+    private static void mostrarUsuarios(Connection connection) throws SQLException {
+        String sql = "SELECT * FROM usuarios";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String nombre = resultSet.getString("nombre");
+                String email = resultSet.getString("email");
+                System.out.println("ID: " + id + ", Nombre: " + nombre + ", Email: " + email);
+            }
+        }
+    }
+
+    private static void gestionarCuentaBancaria(Scanner scanner, CuentaBancaria cuenta) {
+        while (true) {
+            System.out.println("Elige una opción para la cuenta bancaria:");
+            System.out.println("1. Retirar dinero");
+            System.out.println("2. Consultar saldo");
+            System.out.println("3. Volver al menú principal");
+            int opcion = scanner.nextInt();
+
+            switch (opcion) {
+                case 1:
+                    try {
+                        System.out.print("Ingresa la cantidad a retirar: ");
+                        double cantidad = scanner.nextDouble();
+                        cuenta.retirar(cantidad);
+                        System.out.println("Retiro exitoso. Saldo restante: $" + cuenta.getSaldo());
+                    } catch (FondosInsuficientesException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                    break;
+                case 2:
+                    System.out.println("Saldo actual: $" + cuenta.getSaldo());
+                    break;
+                case 3:
+                    return;
+                default:
+                    System.out.println("Opción no válida. Intenta de nuevo.");
+            }
+        }
+    }
+}
